@@ -66,7 +66,25 @@ public class TaskManager {
         saveTasks();
         return newTask;
     }
+    public boolean updateTask(int id, String title, String description,
+                              String category, Task.Priority priority, LocalDateTime dueDate) {
 
+        Optional<Task> taskOpt = tasks.stream()
+                .filter(t -> t.getId() == id)
+                .findFirst();
+
+        if (taskOpt.isPresent()) {
+            Task task = taskOpt.get();
+            task.setTitle(title);
+            task.setDescription(description);
+            task.setCategory(category);
+            task.setPriority(priority);
+            task.setDueDate(dueDate);
+            saveTasks(); // Save changes to the file
+            return true;
+        }
+        return false;
+    }
     public boolean deleteTask(int id) {
         boolean removed = tasks.removeIf(t -> t.getId() == id);
         if (removed) {

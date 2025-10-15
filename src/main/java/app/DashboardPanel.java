@@ -27,6 +27,7 @@ public class DashboardPanel extends JPanel implements ActionListener {
 
     private JButton addTaskButton;
     private JButton deleteTaskButton;
+    private JButton editTaskButton;
     private JButton completeTaskButton;
     private JComboBox<String> categoryFilterBox;
     private JComboBox<String> priorityFilterBox;
@@ -70,6 +71,8 @@ public class DashboardPanel extends JPanel implements ActionListener {
         // Action Buttons Row (Right side)
         addTaskButton = createStyledButton("Add Task 📝");
         deleteTaskButton = createStyledButton("Delete 🗑️");
+        editTaskButton = createStyledButton("Edit Task ✏️"); // NEW BUTTON
+        editTaskButton.addActionListener(this);
         completeTaskButton = createStyledButton("Complete ✔️");
         logoutButton = createStyledButton("Logout 🚪");
 
@@ -83,6 +86,7 @@ public class DashboardPanel extends JPanel implements ActionListener {
         actionButtonPanel.add(addTaskButton);
         actionButtonPanel.add(completeTaskButton);
         actionButtonPanel.add(deleteTaskButton);
+        actionButtonPanel.add(editTaskButton);
         actionButtonPanel.add(logoutButton);
 
         // Filter Controls Panel
@@ -384,6 +388,75 @@ public class DashboardPanel extends JPanel implements ActionListener {
         }
     }
 
+    // Add this new method inside app/DashboardPanel.java
+
+    private void showEditTaskDialog() {
+        Task selectedTask = taskList.getSelectedValue();
+
+        if (selectedTask == null) {
+            JOptionPane.showMessageDialog(this, "Please select a task to edit.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // --- 1. Set up dialog fields, pre-filled with existing data ---
+        JTextField titleField = new JTextField(selectedTask.getTitle(), 20);
+        JTextField descField = new JTextField(selectedTask.getDescription(), 20);
+
+        JComboBox<String> categoryBox = new JComboBox<>(new String[]{"Lab", "Study", "Personal", "Assignment", "Project"});
+        categoryBox.setSelectedItem(selectedTask.getCategory());
+
+        JComboBox<Task.Priority> priorityBox = new JComboBox<>(Task.Priority.values());
+        priorityBox.setSelectedItem(selectedTask.getPriority()); // Pre-select current priority
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+        JTextField dueDateField = new JTextField(selectedTask.getDueDate().format(formatter), 20);
+
+        JPanel panel = new JPanel(new GridLayout(0, 2, 5, 10));
+        panel.add(new JLabel("Title:")); panel.add(titleField);
+        panel.add(new JLabel("Description:")); panel.add(descField);
+        panel.add(new JLabel("Category:")); panel.add(categoryBox);
+        panel.add(new JLabel("Priority:")); panel.add(priorityBox);
+        panel.add(new JLabel("Due Date (YYYY-MM-DD HH:MM):")); panel.add(dueDateField);
+
+        int result = JOptionPane.showConfirmDialog(this, panel, "Edit Task: " + selectedTask.getTitle(),
+                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+
+        if (result == JOptionPane.OK_OPTION) {
+            try {
+                String newTitle = titleField.getText().trim();
+                String newDesc = descField.getText().trim();
+                String newCategory = (String) categoryBox.getSelectedItem();
+                Task.Priority newPriority = (Task.Priority) priorityBox.getSelectedItem();
+                LocalDateTime newDueDate = LocalDateTime.parse(dueDateField.getText().trim(), formatter);
+
+                if (newTitle.isEmpty()) {
+                    JOptionPane.showMessageDialog(this, "Title cannot be empty.", "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                // --- 2. Call the updateTask logic you added ---
+                boolean success = taskManager.updateTask(
+                        selectedTask.getId(),
+                        newTitle,
+                        newDesc,
+                        newCategory,
+                        newPriority,
+                        newDueDate
+                );
+
+                if (success) {
+                    loadTasks(); // Reload the list to show updated details
+                } else {
+                    JOptionPane.showMessageDialog(this, "Failed to update task.", "Error", JOptionPane.ERROR_MESSAGE);
+                }
+
+            } catch (DateTimeParseException e) {
+                JOptionPane.showMessageDialog(this, "Invalid Date/Time format. Use YYYY-MM-DD HH:MM.", "Error", JOptionPane.ERROR_MESSAGE);
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this, "An error occurred: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
     private void handleDeleteTask() {
         Task selectedTask = taskList.getSelectedValue();
 
@@ -420,6 +493,8 @@ public class DashboardPanel extends JPanel implements ActionListener {
     }
 
     @Override
+    // Inside DashboardPanel.java
+
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() == addTaskButton) {
             showAddTaskDialog();
@@ -427,6 +502,8 @@ public class DashboardPanel extends JPanel implements ActionListener {
             handleDeleteTask();
         } else if (e.getSource() == completeTaskButton) {
             handleCompleteTask();
+        } else if (e.getSource() == editTaskButton) { // ADDED
+            showEditTaskDialog();
         } else if (e.getSource() == logoutButton) {
             controller.logout();
         } else if (e.getSource() == categoryFilterBox) {
