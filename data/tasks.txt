@@ -1,3 +1,9 @@
 7|bhagyasree@gmail.com|chemistry|expt 1|Lab|low|2025-10-15T17:20:01.348438400|2025-10-20T17:19|false
 8|bhagyasree@gmail.com|oop|ppt|Project|high|2025-10-15T17:23:38.650230100|2025-10-15T17:23|false
 9|bhagyasree@gmail.com|maths|problems|Assignment|low|2025-10-15T17:50:48.366742300|2025-10-25T17:50|false
+15|bhagya56@gmail.com|DIGITAL ELECTRONICS|record submission|Lab|low|2025-10-16T21:58:25.471485800|2025-10-21T21:57|false
+16|bhagya56@gmail.com|OOP|main ppt, system design document|Project|high|2025-10-16T22:12:17.639681900|2025-10-17T22:11|false
+17|bhagya56@gmail.com|ECONOMICS|problems|Assignment|high|2025-10-16T22:12:51.959894700|2025-10-17T22:12|false
+18|bhagya56@gmail.com|DSA|internal exam|Lab|medium|2025-10-16T22:13:22.641063|2025-10-22T22:12|false
+19|bhagya56@gmail.com|MATHS|problems|Assignment|low|2025-10-16T22:13:49.581743700|2025-10-25T22:13|false
+20|bhagya56@gmail.com|DE|study counters|Study|high|2025-10-16T22:14:34.143087900|2025-10-16T22:15|false

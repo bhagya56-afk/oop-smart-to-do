@@ -187,12 +187,17 @@ public class DashboardPanel extends JPanel implements ActionListener {
 
         private JLabel titleLabel;
         private JLabel detailsLabel;
+        private JLabel descriptionLabel; // NEW FIELD
+        private JPanel textPanel;
         private JPanel statusPanel;
 
         public TaskCellRenderer() {
             setLayout(new BorderLayout(10, 0)); // Increased horizontal gap
             setBorder(new EmptyBorder(10, 15, 10, 15)); // Increased padding
-
+            textPanel = new JPanel();
+            // Set the textPanel to stack its contents (the three labels) vertically
+            textPanel.setLayout(new BoxLayout(textPanel, BoxLayout.Y_AXIS));
+            textPanel.setOpaque(false); // Ensure it doesn't cover the background color
             // Title (North)
             titleLabel = new JLabel();
             titleLabel.setFont(new Font("Arial", Font.BOLD, 16)); // Slightly larger title
@@ -204,6 +209,20 @@ public class DashboardPanel extends JPanel implements ActionListener {
             detailsLabel.setForeground(new Color(100, 100, 100)); // Lighter gray for secondary text
             add(detailsLabel, BorderLayout.CENTER);
 
+            descriptionLabel = new JLabel();
+            descriptionLabel.setFont(new Font("Arial", Font.ITALIC, 12));
+            descriptionLabel.setForeground(new Color(150, 150, 150));
+            descriptionLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+            // 3. Add Labels to Text Panel
+            textPanel.add(titleLabel);
+            textPanel.add(Box.createRigidArea(new Dimension(0, 3))); // Small vertical space (3px)
+            textPanel.add(detailsLabel);
+            textPanel.add(descriptionLabel);
+
+            // 4. Add Panels to the Main Cell
+            // Add the new text stack to the center of the cell
+            add(textPanel, BorderLayout.CENTER);
             // Status Panel (East)
             statusPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
             statusPanel.setOpaque(false);
@@ -216,14 +235,23 @@ public class DashboardPanel extends JPanel implements ActionListener {
 
             // 1. Set Background Color
             Color background;
-            if (task.isCompleted()) {
-                background = COMPLETED_COLOR;
-            } else if (task.getPriority() == Priority.HIGH) {
+            Color priorityDotColor;
+
+            // Determine priority dot color and base background color
+            if (task.getPriority() == Priority.HIGH) {
                 background = HIGH_COLOR;
+                priorityDotColor = new Color(220, 0, 0);
             } else if (task.getPriority() == Priority.MEDIUM) {
                 background = MEDIUM_COLOR;
+                priorityDotColor = new Color(200, 100, 0);
             } else {
                 background = LOW_COLOR;
+                priorityDotColor = new Color(0, 150, 0);
+            }
+
+            if (task.isCompleted()) {
+                background = COMPLETED_COLOR;
+                priorityDotColor = Color.GRAY;
             }
 
             if (isSelected) {
@@ -233,17 +261,13 @@ public class DashboardPanel extends JPanel implements ActionListener {
 
             setBackground(background);
 
-            // 2. Set Text and Status
+            // 2. Prepare Text and Status
             String titleText = task.getTitle();
             String dueDateStr = task.getDueDate().format(DateTimeFormatter.ofPattern("MMM dd, HH:mm"));
 
             statusPanel.removeAll();
 
-            Color priorityDotColor;
-            if (task.getPriority() == Priority.HIGH) priorityDotColor = new Color(220, 0, 0);
-            else if (task.getPriority() == Priority.MEDIUM) priorityDotColor = new Color(200, 100, 0);
-            else priorityDotColor = new Color(0, 150, 0);
-
+            // 3. Add Priority Dot if not completed
             if (!task.isCompleted()) {
                 statusPanel.add(createColoredDot(priorityDotColor));
             }
@@ -251,8 +275,9 @@ public class DashboardPanel extends JPanel implements ActionListener {
             JLabel statusLabel = new JLabel();
             statusLabel.setFont(new Font("Arial", Font.BOLD, 12));
 
+            // 4. Set Title and Status Label Logic
             if (task.isCompleted()) {
-                titleLabel.setText("<html><strike>" + titleText + "</strike></html>");
+                titleLabel.setText("<html><strike>" + titleText + "</strike></html>"); // Uses HTML for strikethrough
                 statusLabel.setForeground(PRIMARY_ACCENT.darker());
                 statusLabel.setText("DONE");
             } else {
@@ -264,7 +289,7 @@ public class DashboardPanel extends JPanel implements ActionListener {
                     statusLabel.setText("OVERDUE");
                 } else if (task.isDueToday()) {
                     statusLabel.setForeground(new Color(0, 100, 0));
-                    statusLabel.setText("TODAY"); // Shorter text
+                    statusLabel.setText("TODAY");
                 } else {
                     statusLabel.setForeground(DARK_TEXT);
                     statusLabel.setText(task.getPriority().getValue().toUpperCase());
@@ -273,16 +298,29 @@ public class DashboardPanel extends JPanel implements ActionListener {
 
             statusPanel.add(statusLabel);
 
+            // 🌟 5. UPDATE: Set Details Label (Line 2) 🌟
             detailsLabel.setText(String.format("Category: %s | Due: %s", task.getCategory(), dueDateStr));
 
-            // Set final foreground colors
+            // 🌟 6. NEW: Set Description Label (Line 3) 🌟
+            String descriptionSnippet = task.getDescription();
+            if (descriptionSnippet != null && descriptionSnippet.length() > 60) {
+                descriptionSnippet = descriptionSnippet.substring(0, 60) + "...";
+            } else if (descriptionSnippet == null || descriptionSnippet.trim().isEmpty()) {
+                descriptionSnippet = "— No description provided —";
+            }
+            descriptionLabel.setText("Desc: " + descriptionSnippet);
+
+
+            // 7. Set final foreground colors
             Color titleForeground = (task.isCompleted() && !isSelected) ? Color.GRAY : (isSelected ? Color.WHITE : DARK_TEXT);
             Color detailForeground = (isSelected) ? Color.WHITE : new Color(100, 100, 100);
+            Color descriptionForeground = (isSelected) ? Color.WHITE : new Color(150, 150, 150);
 
             titleLabel.setForeground(titleForeground);
             detailsLabel.setForeground(detailForeground);
+            descriptionLabel.setForeground(descriptionForeground); // Set new label color
 
-            // Set borders/padding
+            // 8. Set borders/padding
             if (!isSelected) {
                 Border lineBorder = BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(220, 220, 220));
                 setBorder(BorderFactory.createCompoundBorder(lineBorder, new EmptyBorder(10, 15, 10, 15)));
@@ -291,6 +329,8 @@ public class DashboardPanel extends JPanel implements ActionListener {
             }
 
             statusPanel.setBackground(background);
+            // Ensure the text panel also has the correct background (for full transparency)
+            // If you used the fix for the constructor, textPanel.setOpaque(false) already handles this
 
             return this;
         }
@@ -314,6 +354,10 @@ public class DashboardPanel extends JPanel implements ActionListener {
             };
             dot.setOpaque(false);
             return dot;
+        }
+
+        public void setTextPanel(JPanel textPanel) {
+            this.textPanel = textPanel;
         }
     }
 
